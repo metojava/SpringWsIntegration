@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
+	xmlns:oxm="http://www.springframework.org/schema/oxm" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ws 
+		http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
+		http://www.springframework.org/schema/oxm
+http://www.springframework.org/schema/oxm/spring-oxm.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context.xsd
+		">
+
+	<context:component-scan base-package="com.myshop" />
+
+	<int:channel id="replyChannel" />
+	<int:channel id="requestChannel" />
+
+	<int:gateway id="gateway" default-request-timeout="5000"
+		default-reply-timeout="5000" default-request-channel="requestChannel"
+		default-reply-channel="replyChannel" service-interface="com.myshop.client.ProductsService">
+		<int:method name="getProduct" />
+	</int:gateway>
+
+
+	<int-ws:outbound-gateway id="marshallingGateway"
+		request-channel="requestChannel" reply-channel="replyChannel"
+		uri="http://localhost:8080/ws/endpoints" marshaller="marshaller"
+		unmarshaller="marshaller" />
+	
+	<int:service-activator id="serviceActivator"
+		input-channel="requestChannel" output-channel="replyChannel"
+		expression="payload.toUpperCase()" />
+
+	<oxm:jaxb2-marshaller id="marshaller">
+		<oxm:class-to-be-bound name="com.shop.my.Products" />
+		<oxm:class-to-be-bound
+			name="com.myshop.webservices.getproductsservices.GetProductsRequest" />
+		<oxm:class-to-be-bound
+			name="com.myshop.webservices.getproductsservices.GetProductsResponse" />
+
+	</oxm:jaxb2-marshaller>
+
+	<oxm:jaxb2-marshaller id="unmarshaller">
+		<oxm:class-to-be-bound name="com.shop.my.Products" />
+		<oxm:class-to-be-bound
+			name="com.myshop.webservices.getproductsservices.GetProductsRequest" />
+		<oxm:class-to-be-bound
+			name="com.myshop.webservices.getproductsservices.GetProductsResponse" />
+
+	</oxm:jaxb2-marshaller>
+
+</beans>
